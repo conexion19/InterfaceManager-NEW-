@@ -1,4 +1,6 @@
 local httpService = game:GetService("HttpService")
+local UserInputService = game:GetService("UserInputService")
+local RunService = game:GetService("RunService")
 
 local InterfaceManager = {} do
 	InterfaceManager.Folder = "FluentSettings"
@@ -7,8 +9,11 @@ local InterfaceManager = {} do
         Acrylic = true,
         Transparency = true,
         Snowfall = true,
-        MenuKeybind = "LeftControl"
+        MenuKeybind = "LeftControl",
+        AutoCursorUnlock = false
     }
+
+    InterfaceManager.CursorConnection = nil
 
     function InterfaceManager:SetFolder(folder)
 		self.Folder = folder;
@@ -122,6 +127,52 @@ local InterfaceManager = {} do
             InterfaceManager:SaveSettings()
 		end)
 		Library.MinimizeKeybind = MenuKeybind
+
+		if game.GameId == 93978595733734 then
+			section:AddToggle("AutoCursorUnlock", {
+				Title = "Auto Cursor Unlock",
+				Description = "Automatically show cursor when UI opens and hide when closed.",
+				Default = Settings.AutoCursorUnlock or false,
+				Callback = function(Value)
+					Settings.AutoCursorUnlock = Value
+					InterfaceManager:SaveSettings()
+					
+					if Value then
+						if InterfaceManager.CursorConnection then
+							InterfaceManager.CursorConnection:Disconnect()
+						end
+						
+						InterfaceManager.CursorConnection = RunService.Heartbeat:Connect(function()
+							if Library.Window and Library.Window.Root then
+								if Library.Window.Root.Visible then
+									pcall(function()
+										UserInputService.MouseBehavior = Enum.MouseBehavior.Default
+										UserInputService.MouseIconEnabled = true
+									end)
+								else
+									pcall(function()
+										UserInputService.MouseBehavior = Enum.MouseBehavior.LockCenter
+										UserInputService.MouseIconEnabled = false
+									end)
+								end
+							end
+						end)
+						
+						if Library.Window and not Library.Window.Minimized then
+							pcall(function()
+								UserInputService.MouseBehavior = Enum.MouseBehavior.Default
+								UserInputService.MouseIconEnabled = true
+							end)
+						end
+					else
+						if InterfaceManager.CursorConnection then
+							InterfaceManager.CursorConnection:Disconnect()
+							InterfaceManager.CursorConnection = nil
+						end
+					end
+				end
+			})
+		end
     end
 end
 
