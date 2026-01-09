@@ -128,7 +128,7 @@ local InterfaceManager = {} do
 		end)
 		Library.MinimizeKeybind = MenuKeybind
 
-		if game.GameId == 93978595733734 then
+		if game.PlaceId == 93978595733734 or game.GameId == 93978595733734 then
 			section:AddToggle("AutoCursorUnlock", {
 				Title = "Auto Cursor Unlock",
 				Description = "Automatically show cursor when UI opens and hide when closed.",
