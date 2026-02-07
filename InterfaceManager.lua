@@ -5,7 +5,7 @@ local RunService = game:GetService("RunService")
 local InterfaceManager = {} do
 	InterfaceManager.Folder = "FluentSettings"
     InterfaceManager.Settings = {
-        Theme = "Dark",
+        Theme = "Slate",
         Acrylic = true,
         Transparency = true,
         Snowfall = true,
@@ -70,19 +70,9 @@ local InterfaceManager = {} do
 
 		local section = tab:AddSection("Interface")
 
-		local InterfaceTheme = section:AddDropdown("InterfaceTheme", {
-			Title = "Theme",
-			Description = "Changes the interface theme.",
-			Values = Library.Themes,
-			Default = Settings.Theme,
-			Callback = function(Value)
-				Library:SetTheme(Value)
-                Settings.Theme = Value
-                InterfaceManager:SaveSettings()
-			end
-		})
-
-        InterfaceTheme:SetValue(Settings.Theme)
+        Settings.Theme = "Slate"
+        Library:SetTheme("Slate")
+        InterfaceManager:SaveSettings()
 	
 		if Library.UseAcrylic then
 			section:AddToggle("AcrylicToggle", {
