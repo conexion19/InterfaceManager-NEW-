@@ -20,10 +20,6 @@ local InterfaceManager = {} do
 		self:BuildFolderTree()
 	end
 
-    function InterfaceManager:SetLibrary(library)
-		self.Library = library
-	end
-
     function InterfaceManager:BuildFolderTree()
 		local paths = {}
 
@@ -164,6 +160,29 @@ local InterfaceManager = {} do
 			})
 		end
     end
+
+    function InterfaceManager:DisableCursorUnlock()
+        if InterfaceManager.CursorConnection then
+            InterfaceManager.CursorConnection:Disconnect()
+            InterfaceManager.CursorConnection = nil
+        end
+        pcall(function()
+            UserInputService.MouseBehavior = Enum.MouseBehavior.Default
+            UserInputService.MouseIconEnabled = true
+        end)
+    end
+
+    function InterfaceManager:SetLibrary(library)
+		self.Library = library
+
+		local originalDestroy = library.Destroy
+		library.Destroy = function(lib, ...)
+			InterfaceManager:DisableCursorUnlock()
+			if originalDestroy then
+				return originalDestroy(lib, ...)
+			end
+		end
+	end
 end
 
 return InterfaceManager
