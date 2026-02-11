@@ -8,7 +8,7 @@ local InterfaceManager = {} do
         Theme = "Slate",
         Acrylic = true,
         Transparency = true,
-        Snowfall = true,
+        -- Snowfall = true,
         MenuKeybind = "LeftControl",
         AutoCursorUnlock = false
     }
@@ -94,18 +94,18 @@ local InterfaceManager = {} do
 			end
 		})
 
-		section:AddToggle("SnowfallToggle", {
-			Title = "Snowfall Effect",
-			Description = "Enable or disable the snowfall effect.",
-			Default = Settings.Snowfall == nil and true or Settings.Snowfall,
-			Callback = function(Value)
-				Settings.Snowfall = Value
-				InterfaceManager:SaveSettings()
-				if Library.Snowfall then
-					Library.Snowfall:SetVisible(Value)
-				end
-			end
-		})
+		-- section:AddToggle("SnowfallToggle", {
+		-- 	Title = "Snowfall Effect",
+		-- 	Description = "Enable or disable the snowfall effect.",
+		-- 	Default = Settings.Snowfall == nil and true or Settings.Snowfall,
+		-- 	Callback = function(Value)
+		-- 		Settings.Snowfall = Value
+		-- 		InterfaceManager:SaveSettings()
+		-- 		if Library.Snowfall then
+		-- 			Library.Snowfall:SetVisible(Value)
+		-- 		end
+		-- 	end
+		-- })
 	
 		local MenuKeybind = section:AddKeybind("MenuKeybind", { Title = "Minimize Bind", Default = Settings.MenuKeybind, NoDisplay = true })
 		MenuKeybind:OnChanged(function()
