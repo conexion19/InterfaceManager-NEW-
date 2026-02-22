@@ -9,7 +9,7 @@ local InterfaceManager = {} do
         Acrylic = true,
         Transparency = false, -- Changed to false by default
         -- Snowfall = true,
-        MenuKeybind = "LeftControl",
+        MenuKeybind = "LeftAlt",
         AutoCursorUnlock = false,
         Language = "English"
     }
@@ -69,8 +69,7 @@ local InterfaceManager = {} do
 
         Settings.Theme = "Slate"
         Library:SetTheme("Slate")
-        
-        -- Force transparency to false regardless of saved settings
+		
         Settings.Transparency = false
         Library:ToggleTransparency(false)
         
