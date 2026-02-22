@@ -7,7 +7,7 @@ local InterfaceManager = {} do
     InterfaceManager.Settings = {
         Theme = "Slate",
         Acrylic = true,
-        Transparency = true,
+        Transparency = false, -- Changed to false by default
         -- Snowfall = true,
         MenuKeybind = "LeftControl",
         AutoCursorUnlock = false
@@ -68,6 +68,11 @@ local InterfaceManager = {} do
 
         Settings.Theme = "Slate"
         Library:SetTheme("Slate")
+        
+        -- Force transparency to false regardless of saved settings
+        Settings.Transparency = false
+        Library:ToggleTransparency(false)
+        
         InterfaceManager:SaveSettings()
 	
 		if Library.UseAcrylic then
@@ -83,6 +88,7 @@ local InterfaceManager = {} do
 			})
 		end
 	
+		--[[
 		section:AddToggle("TransparentToggle", {
 			Title = "Transparency",
 			Description = "Makes the interface transparent.",
@@ -93,6 +99,7 @@ local InterfaceManager = {} do
                 InterfaceManager:SaveSettings()
 			end
 		})
+		]]
 
 		-- section:AddToggle("SnowfallToggle", {
 		-- 	Title = "Snowfall Effect",
