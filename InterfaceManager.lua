@@ -10,7 +10,8 @@ local InterfaceManager = {} do
         Transparency = false, -- Changed to false by default
         -- Snowfall = true,
         MenuKeybind = "LeftControl",
-        AutoCursorUnlock = false
+        AutoCursorUnlock = false,
+        Language = "English"
     }
 
     InterfaceManager.CursorConnection = nil
@@ -73,6 +74,10 @@ local InterfaceManager = {} do
         Settings.Transparency = false
         Library:ToggleTransparency(false)
         
+        if Settings.Language and Library.LanguageManager then
+            Library.LanguageManager:SetLanguage(Settings.Language)
+        end
+        
         InterfaceManager:SaveSettings()
 	
 		if Library.UseAcrylic then
@@ -84,6 +89,21 @@ local InterfaceManager = {} do
 					Library:ToggleAcrylic(Value)
                     Settings.Acrylic = Value
                     InterfaceManager:SaveSettings()
+				end
+			})
+		end
+		
+		if Library.LanguageManager then
+			section:AddDropdown("LanguageDropdown", {
+				Title = "Language",
+				Description = "Select the interface language.",
+				Values = {"English", "Russian"},
+				Multi = false,
+				Default = Settings.Language or "English",
+				Callback = function(Value)
+					Settings.Language = Value
+					Library.LanguageManager:SetLanguage(Value)
+					InterfaceManager:SaveSettings()
 				end
 			})
 		end
