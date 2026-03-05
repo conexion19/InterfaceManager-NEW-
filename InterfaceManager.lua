@@ -3,12 +3,11 @@ local UserInputService = game:GetService("UserInputService")
 local RunService = game:GetService("RunService")
 
 local InterfaceManager = {} do
-	InterfaceManager.Folder = "FluentSettings"
+	InterfaceManager.Folder = "Nexus Settings"
     InterfaceManager.Settings = {
         Theme = "Slate",
         Acrylic = true,
-        Transparency = false, 
-        -- Snowfall = true,
+        Transparency = false,
         MenuKeybind = "LeftAlt",
         AutoCursorUnlock = false,
         Language = "English"
@@ -17,8 +16,10 @@ local InterfaceManager = {} do
     InterfaceManager.CursorConnection = nil
 
     function InterfaceManager:SetFolder(folder)
-		self.Folder = folder;
-		self:BuildFolderTree()
+		self.Folder = folder
+		pcall(function()
+			self:BuildFolderTree()
+		end)
 	end
 
     function InterfaceManager:BuildFolderTree()
@@ -35,13 +36,17 @@ local InterfaceManager = {} do
 		for i = 1, #paths do
 			local str = paths[i]
 			if not isfolder(str) then
-				makefolder(str)
+				pcall(function()
+					makefolder(str)
+				end)
 			end
 		end
 	end
 
     function InterfaceManager:SaveSettings()
-        writefile(self.Folder .. "/options.json", httpService:JSONEncode(InterfaceManager.Settings))
+        pcall(function()
+            writefile(self.Folder .. "/options.json", httpService:JSONEncode(InterfaceManager.Settings))
+        end)
     end
 
     function InterfaceManager:LoadSettings()
@@ -63,21 +68,32 @@ local InterfaceManager = {} do
 		local Library = self.Library
         local Settings = InterfaceManager.Settings
 
-        InterfaceManager:LoadSettings()
+        pcall(function()
+            InterfaceManager:LoadSettings()
+        end)
 
-		local section = tab:AddSection("Interface")
+		local section = pcall(function() return tab:AddSection("Interface") end)
+        if not section or type(section) ~= "table" then return end
 
-        Settings.Theme = "Slate"
-        Library:SetTheme("Slate")
+        if not Settings.Theme then Settings.Theme = "Slate" end
+        pcall(function()
+            Library:SetTheme(Settings.Theme)
+        end)
 		
-        Settings.Transparency = false
-        Library:ToggleTransparency(false)
+        if Settings.Transparency == nil then Settings.Transparency = false end
+        pcall(function()
+            Library:ToggleTransparency(Settings.Transparency)
+        end)
         
         if Settings.Language and Library.LanguageManager then
-            Library.LanguageManager:SetLanguage(Settings.Language)
+            pcall(function()
+                Library.LanguageManager:SetLanguage(Settings.Language)
+            end)
         end
         
-        InterfaceManager:SaveSettings()
+        pcall(function()
+            InterfaceManager:SaveSettings()
+        end)
 	
 		if Library.UseAcrylic then
 			section:AddToggle("AcrylicToggle", {
