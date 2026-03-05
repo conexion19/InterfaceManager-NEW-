@@ -1,3 +1,8 @@
+-- compatibility stub to avoid 'attempt to call "hm1value"' errors
+if type(hm1value) ~= "function" then
+    hm1value = function() end
+end
+
 local httpService = game:GetService("HttpService")
 local UserInputService = game:GetService("UserInputService")
 local RunService = game:GetService("RunService")
@@ -7,6 +12,7 @@ local InterfaceManager = {} do
     InterfaceManager.Settings = {
         Theme = "Slate",
         Acrylic = false,
+		Transparency = false,
         MenuKeybind = "LeftAlt",
         AutoCursorUnlock = false,
         Language = "English"
