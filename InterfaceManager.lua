@@ -1,8 +1,3 @@
--- compatibility stub to avoid 'attempt to call "hm1value"' errors
-if type(hm1value) ~= "function" then
-    hm1value = function() end
-end
-
 local httpService = game:GetService("HttpService")
 local UserInputService = game:GetService("UserInputService")
 local RunService = game:GetService("RunService")
@@ -69,16 +64,16 @@ local InterfaceManager = {} do
     end
 
     function InterfaceManager:BuildInterfaceSection(tab)
-        assert(self.Library, "Must set InterfaceManager.Library")
+		assert(self.Library, "Must set InterfaceManager.Library")
 		local Library = self.Library
-        local Settings = InterfaceManager.Settings
+		local Settings = InterfaceManager.Settings
 
-        pcall(function()
-            InterfaceManager:LoadSettings()
-        end)
+		pcall(function()
+			InterfaceManager:LoadSettings()
+		end)
 
-		local section = pcall(function() return tab:AddSection("Interface") end)
-        if not section or type(section) ~= "table" then return end
+		local success, section = pcall(function() return tab:AddSection("Interface") end)
+		if not success or type(section) ~= "table" then return end
 
         if not Settings.Theme then Settings.Theme = "Slate" end
         pcall(function()
