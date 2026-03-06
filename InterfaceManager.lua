@@ -7,7 +7,7 @@ local InterfaceManager = {} do
     InterfaceManager.Settings = {
         Theme = "Slate",
         Acrylic = false,
-		Transparency = false,
+		Transparency = true,
         MenuKeybind = "LeftAlt",
         AutoCursorUnlock = false,
         Language = "English"
@@ -80,21 +80,16 @@ local InterfaceManager = {} do
             Library:SetTheme(Settings.Theme)
         end)
 		
-        if Settings.Transparency == nil then Settings.Transparency = false end
+        -- Прозрачность включена по умолчанию
+        if Settings.Transparency == nil then Settings.Transparency = true end
         pcall(function()
             Library:ToggleTransparency(Settings.Transparency)
         end)
         
-        if Settings.Language and Library.LanguageManager then
-            pcall(function()
-                Library.LanguageManager:SetLanguage(Settings.Language)
-            end)
-        end
-        
-        pcall(function()
-            InterfaceManager:SaveSettings()
-        end)
-	
+		pcall(function()
+			InterfaceManager:SaveSettings()
+		end)
+
 		if Library.UseAcrylic then
 			section:AddToggle("AcrylicToggle", {
 				Title = "Acrylic",
@@ -102,39 +97,16 @@ local InterfaceManager = {} do
 				Default = Settings.Acrylic,
 				Callback = function(Value)
 					Library:ToggleAcrylic(Value)
-                    Settings.Acrylic = Value
-                    InterfaceManager:SaveSettings()
-				end
-			})
-		end
-		
-		if Library.LanguageManager then
-			section:AddDropdown("LanguageDropdown", {
-				Title = "Language",
-				Description = "Select the interface language.",
-				Values = {"English", "Russian"},
-				Multi = false,
-				Default = Settings.Language or "English",
-				Callback = function(Value)
-					Settings.Language = Value
-					Library.LanguageManager:SetLanguage(Value)
+					Settings.Acrylic = Value
 					InterfaceManager:SaveSettings()
 				end
 			})
 		end
 	
-		--[[
-		section:AddToggle("TransparentToggle", {
-			Title = "Transparency",
-			Description = "Makes the interface transparent.",
-			Default = Settings.Transparency,
-			Callback = function(Value)
-				Library:ToggleTransparency(Value)
-				Settings.Transparency = Value
-                InterfaceManager:SaveSettings()
-			end
-		})
-		]]
+		
+		-- Прозрачность всегда включена по умолчанию
+		Settings.Transparency = true
+		
 
 		-- section:AddToggle("SnowfallToggle", {
 		-- 	Title = "Snowfall Effect",
