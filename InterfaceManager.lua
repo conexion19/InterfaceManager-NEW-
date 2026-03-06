@@ -85,10 +85,16 @@ local InterfaceManager = {} do
             Library:ToggleTransparency(Settings.Transparency)
         end)
         
-		pcall(function()
-			InterfaceManager:SaveSettings()
-		end)
-
+        if Settings.Language and Library.LanguageManager then
+            pcall(function()
+                Library.LanguageManager:SetLanguage(Settings.Language)
+            end)
+        end
+        
+        pcall(function()
+            InterfaceManager:SaveSettings()
+        end)
+	
 		if Library.UseAcrylic then
 			section:AddToggle("AcrylicToggle", {
 				Title = "Acrylic",
@@ -96,7 +102,22 @@ local InterfaceManager = {} do
 				Default = Settings.Acrylic,
 				Callback = function(Value)
 					Library:ToggleAcrylic(Value)
-					Settings.Acrylic = Value
+                    Settings.Acrylic = Value
+                    InterfaceManager:SaveSettings()
+				end
+			})
+		end
+		
+		if Library.LanguageManager then
+			section:AddDropdown("LanguageDropdown", {
+				Title = "Language",
+				Description = "Select the interface language.",
+				Values = {"English", "Russian"},
+				Multi = false,
+				Default = Settings.Language or "English",
+				Callback = function(Value)
+					Settings.Language = Value
+					Library.LanguageManager:SetLanguage(Value)
 					InterfaceManager:SaveSettings()
 				end
 			})
