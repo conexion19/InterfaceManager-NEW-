@@ -64,7 +64,16 @@ local InterfaceManager = {} do
     end
 
     function InterfaceManager:BuildInterfaceSection(tab)
-		assert(self.Library, "Must set InterfaceManager.Library")
+		if not self.Library or type(self.Library) ~= "table" then
+			warn("[InterfaceManager] Library must be set before calling BuildInterfaceSection")
+			return
+		end
+		
+		if not tab or type(tab.AddSection) ~= "function" then
+			warn("[InterfaceManager] Invalid tab object - missing AddSection method")
+			return
+		end
+		
 		local Library = self.Library
 		local Settings = InterfaceManager.Settings
 
@@ -73,17 +82,24 @@ local InterfaceManager = {} do
 		end)
 
 		local success, section = pcall(function() return tab:AddSection("Interface") end)
-		if not success or type(section) ~= "table" then return end
+		if not success or type(section) ~= "table" then 
+			warn("[InterfaceManager] Failed to create Interface section")
+			return 
+		end
 
         if not Settings.Theme then Settings.Theme = "Slate" end
         pcall(function()
-            Library:SetTheme(Settings.Theme)
+            if type(Library.SetTheme) == "function" then
+                Library:SetTheme(Settings.Theme)
+            end
         end)
 		
         -- Прозрачность включена по умолчанию
         if Settings.Transparency == nil then Settings.Transparency = true end
         pcall(function()
-            Library:ToggleTransparency(Settings.Transparency)
+            if type(Library.ToggleTransparency) == "function" then
+                Library:ToggleTransparency(Settings.Transparency)
+            end
         end)
         
 		pcall(function()
@@ -91,87 +107,93 @@ local InterfaceManager = {} do
 		end)
 
 		if Library.UseAcrylic then
-			section:AddToggle("AcrylicToggle", {
-				Title = "Acrylic",
-				Description = "The blurred background requires graphic quality 8+",
-				Default = Settings.Acrylic,
-				Callback = function(Value)
-					Library:ToggleAcrylic(Value)
-					Settings.Acrylic = Value
-					InterfaceManager:SaveSettings()
-				end
-			})
+			pcall(function()
+				section:AddToggle("AcrylicToggle", {
+					Title = "Acrylic",
+					Description = "The blurred background requires graphic quality 8+",
+					Default = Settings.Acrylic,
+					Callback = function(Value)
+						if type(Value) == "boolean" then
+							pcall(function()
+								if type(Library.ToggleAcrylic) == "function" then
+									Library:ToggleAcrylic(Value)
+								end
+							end)
+							Settings.Acrylic = Value
+							InterfaceManager:SaveSettings()
+						end
+					end
+				})
+			end)
 		end
 	
 		
-		-- Прозрачность всегда включена по умолчанию
 		Settings.Transparency = true
 		
-
-		-- section:AddToggle("SnowfallToggle", {
-		-- 	Title = "Snowfall Effect",
-		-- 	Description = "Enable or disable the snowfall effect.",
-		-- 	Default = Settings.Snowfall == nil and true or Settings.Snowfall,
-		-- 	Callback = function(Value)
-		-- 		Settings.Snowfall = Value
-		-- 		InterfaceManager:SaveSettings()
-		-- 		if Library.Snowfall then
-		-- 			Library.Snowfall:SetVisible(Value)
-		-- 		end
-		-- 	end
-		-- })
-	
-		local MenuKeybind = section:AddKeybind("MenuKeybind", { Title = "Minimize Bind", Default = Settings.MenuKeybind, NoDisplay = true })
-		MenuKeybind:OnChanged(function()
-			Settings.MenuKeybind = MenuKeybind.Value
-            InterfaceManager:SaveSettings()
-		end)
-		Library.MinimizeKeybind = MenuKeybind
+		local success2, MenuKeybind = pcall(function() return section:AddKeybind("MenuKeybind", {
+			Title = "Minimize Bind",
+			Default = Settings.MenuKeybind or "LeftAlt",
+			NoDisplay = true,
+			Callback = function(Value)
+				if type(Value) == "string" then
+					Settings.MenuKeybind = Value
+					InterfaceManager:SaveSettings()
+				end
+			end
+		}) end)
+		
+		if success2 and MenuKeybind and type(MenuKeybind) == "table" then
+			Library.MinimizeKeybind = MenuKeybind
+		end
 
 		if game.PlaceId == 93978595733734 or game.GameId == 93978595733734 then
-			section:AddToggle("AutoCursorUnlock", {
-				Title = "Auto Cursor Unlock",
-				Description = "Automatically show cursor when UI opens and hide when closed.",
-				Default = Settings.AutoCursorUnlock or false,
-				Callback = function(Value)
-					Settings.AutoCursorUnlock = Value
-					InterfaceManager:SaveSettings()
-					
-					if Value then
-						if InterfaceManager.CursorConnection then
-							InterfaceManager.CursorConnection:Disconnect()
-						end
-						
-						InterfaceManager.CursorConnection = RunService.Heartbeat:Connect(function()
-							if Library.Window and Library.Window.Root then
-								if Library.Window.Root.Visible then
+			pcall(function()
+				section:AddToggle("AutoCursorUnlock", {
+					Title = "Auto Cursor Unlock",
+					Description = "Automatically show cursor when UI opens and hide when closed.",
+					Default = Settings.AutoCursorUnlock or false,
+					Callback = function(Value)
+						if type(Value) == "boolean" then
+							Settings.AutoCursorUnlock = Value
+							InterfaceManager:SaveSettings()
+							
+							if Value then
+								if InterfaceManager.CursorConnection then
+									InterfaceManager.CursorConnection:Disconnect()
+								end
+								
+								InterfaceManager.CursorConnection = RunService.Heartbeat:Connect(function()
+									if Library.Window and Library.Window.Root then
+										if Library.Window.Root.Visible then
+											pcall(function()
+												UserInputService.MouseBehavior = Enum.MouseBehavior.Default
+												UserInputService.MouseIconEnabled = true
+											end)
+										else
+											pcall(function()
+												UserInputService.MouseBehavior = Enum.MouseBehavior.LockCenter
+												UserInputService.MouseIconEnabled = false
+											end)
+										end
+									end
+								end)
+								
+								if Library.Window and not Library.Window.Minimized then
 									pcall(function()
 										UserInputService.MouseBehavior = Enum.MouseBehavior.Default
 										UserInputService.MouseIconEnabled = true
 									end)
-								else
-									pcall(function()
-										UserInputService.MouseBehavior = Enum.MouseBehavior.LockCenter
-										UserInputService.MouseIconEnabled = false
-									end)
+								end
+							else
+								if InterfaceManager.CursorConnection then
+									InterfaceManager.CursorConnection:Disconnect()
+									InterfaceManager.CursorConnection = nil
 								end
 							end
-						end)
-						
-						if Library.Window and not Library.Window.Minimized then
-							pcall(function()
-								UserInputService.MouseBehavior = Enum.MouseBehavior.Default
-								UserInputService.MouseIconEnabled = true
-							end)
-						end
-					else
-						if InterfaceManager.CursorConnection then
-							InterfaceManager.CursorConnection:Disconnect()
-							InterfaceManager.CursorConnection = nil
 						end
 					end
-				end
-			})
+				})
+			end)
 		end
     end
 
