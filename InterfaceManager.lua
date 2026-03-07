@@ -106,93 +106,99 @@ local InterfaceManager = {} do
 			InterfaceManager:SaveSettings()
 		end)
 
-		if Library.UseAcrylic then
+		if Library and type(Library) == "table" and Library.UseAcrylic then
 			pcall(function()
-				section:AddToggle("AcrylicToggle", {
-					Title = "Acrylic",
-					Description = "The blurred background requires graphic quality 8+",
-					Default = Settings.Acrylic,
-					Callback = function(Value)
-						if type(Value) == "boolean" then
-							pcall(function()
-								if type(Library.ToggleAcrylic) == "function" then
-									Library:ToggleAcrylic(Value)
-								end
-							end)
-							Settings.Acrylic = Value
-							InterfaceManager:SaveSettings()
+				if type(section) == "table" and type(section.AddToggle) == "function" then
+					section:AddToggle("AcrylicToggle", {
+						Title = "Acrylic",
+						Description = "The blurred background requires graphic quality 8+",
+						Default = Settings.Acrylic,
+						Callback = function(Value)
+							if type(Value) == "boolean" then
+								pcall(function()
+									if type(Library.ToggleAcrylic) == "function" then
+										Library:ToggleAcrylic(Value)
+									end
+								end)
+								Settings.Acrylic = Value
+								InterfaceManager:SaveSettings()
+							end
 						end
-					end
-				})
+					})
+				end
 			end)
 		end
 	
 		
 		Settings.Transparency = true
 		
-		local success2, MenuKeybind = pcall(function() return section:AddKeybind("MenuKeybind", {
-			Title = "Minimize Bind",
-			Default = Settings.MenuKeybind or "LeftAlt",
-			NoDisplay = true,
-			Callback = function(Value)
-				if type(Value) == "string" then
-					Settings.MenuKeybind = Value
-					InterfaceManager:SaveSettings()
+		if type(section) == "table" and type(section.AddKeybind) == "function" then
+			local success2, MenuKeybind = pcall(function() return section:AddKeybind("MenuKeybind", {
+				Title = "Minimize Bind",
+				Default = Settings.MenuKeybind or "LeftAlt",
+				NoDisplay = true,
+				Callback = function(Value)
+					if type(Value) == "string" then
+						Settings.MenuKeybind = Value
+						InterfaceManager:SaveSettings()
+					end
 				end
+			}) end)
+			
+			if success2 and MenuKeybind and type(MenuKeybind) == "table" then
+				Library.MinimizeKeybind = MenuKeybind
 			end
-		}) end)
-		
-		if success2 and MenuKeybind and type(MenuKeybind) == "table" then
-			Library.MinimizeKeybind = MenuKeybind
 		end
 
 		if game.PlaceId == 93978595733734 or game.GameId == 93978595733734 then
 			pcall(function()
-				section:AddToggle("AutoCursorUnlock", {
-					Title = "Auto Cursor Unlock",
-					Description = "Automatically show cursor when UI opens and hide when closed.",
-					Default = Settings.AutoCursorUnlock or false,
-					Callback = function(Value)
-						if type(Value) == "boolean" then
-							Settings.AutoCursorUnlock = Value
-							InterfaceManager:SaveSettings()
-							
-							if Value then
-								if InterfaceManager.CursorConnection then
-									InterfaceManager.CursorConnection:Disconnect()
-								end
+				if type(section) == "table" and type(section.AddToggle) == "function" then
+					section:AddToggle("AutoCursorUnlock", {
+						Title = "Auto Cursor Unlock",
+						Description = "Automatically show cursor when UI opens and hide when closed.",
+						Default = Settings.AutoCursorUnlock or false,
+						Callback = function(Value)
+							if type(Value) == "boolean" then
+								Settings.AutoCursorUnlock = Value
+								InterfaceManager:SaveSettings()
 								
-								InterfaceManager.CursorConnection = RunService.Heartbeat:Connect(function()
-									if Library.Window and Library.Window.Root then
-										if Library.Window.Root.Visible then
-											pcall(function()
-												UserInputService.MouseBehavior = Enum.MouseBehavior.Default
-												UserInputService.MouseIconEnabled = true
-											end)
-										else
-											pcall(function()
-												UserInputService.MouseBehavior = Enum.MouseBehavior.LockCenter
-												UserInputService.MouseIconEnabled = false
-											end)
-										end
+								if Value then
+									if InterfaceManager.CursorConnection then
+										InterfaceManager.CursorConnection:Disconnect()
 									end
-								end)
-								
-								if Library.Window and not Library.Window.Minimized then
-									pcall(function()
-										UserInputService.MouseBehavior = Enum.MouseBehavior.Default
-										UserInputService.MouseIconEnabled = true
+									
+									InterfaceManager.CursorConnection = RunService.Heartbeat:Connect(function()
+										if Library.Window and Library.Window.Root then
+											if Library.Window.Root.Visible then
+												pcall(function()
+													UserInputService.MouseBehavior = Enum.MouseBehavior.Default
+													UserInputService.MouseIconEnabled = true
+												end)
+											else
+												pcall(function()
+													UserInputService.MouseBehavior = Enum.MouseBehavior.LockCenter
+													UserInputService.MouseIconEnabled = false
+												end)
+											end
+										end
 									end)
-								end
-							else
-								if InterfaceManager.CursorConnection then
-									InterfaceManager.CursorConnection:Disconnect()
-									InterfaceManager.CursorConnection = nil
+									
+									if Library.Window and not Library.Window.Minimized then
+										pcall(function()
+											UserInputService.MouseBehavior = Enum.MouseBehavior.Default
+											UserInputService.MouseIconEnabled = true
+										end)
+									end
+								else
+									if InterfaceManager.CursorConnection then
+										InterfaceManager.CursorConnection:Disconnect()
+										InterfaceManager.CursorConnection = nil
+									end
 								end
 							end
 						end
-					end
-				})
+					})
+				end
 			end)
 		end
     end
