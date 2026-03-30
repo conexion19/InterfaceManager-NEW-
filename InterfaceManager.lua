@@ -21,27 +21,44 @@ local InterfaceManager = {} do
 	end
 
     function InterfaceManager:BuildFolderTree()
-		-- Filesystem operations removed: use in-memory storage.
-		self.Memory = self.Memory or {}
+		local paths = {}
+
+		local parts = self.Folder:split("/")
+		for idx = 1, #parts do
+			paths[#paths + 1] = table.concat(parts, "/", 1, idx)
+		end
+
+		table.insert(paths, self.Folder)
+		table.insert(paths, self.Folder .. "/settings")
+
+		for i = 1, #paths do
+			local str = paths[i]
+			if not isfolder(str) then
+				pcall(function()
+					makefolder(str)
+				end)
+			end
+		end
 	end
 
     function InterfaceManager:SaveSettings()
-		-- persist settings in-memory (no local file I/O)
-		self.Memory = self.Memory or {}
-		self.Memory.options = {}
-		for k, v in pairs(InterfaceManager.Settings) do
-			self.Memory.options[k] = v
-		end
+        pcall(function()
+            writefile(self.Folder .. "/options.json", httpService:JSONEncode(InterfaceManager.Settings))
+        end)
     end
 
     function InterfaceManager:LoadSettings()
-		-- load settings from in-memory storage
-		self.Memory = self.Memory or {}
-		if self.Memory.options then
-			for i, v in next, self.Memory.options do
-				InterfaceManager.Settings[i] = v
-			end
-		end
+        local path = self.Folder .. "/options.json"
+        if isfile(path) then
+            local data = readfile(path)
+            local success, decoded = pcall(httpService.JSONDecode, httpService, data)
+
+            if success then
+                for i, v in next, decoded do
+                    InterfaceManager.Settings[i] = v
+                end
+            end
+        end
     end
 
     function InterfaceManager:BuildInterfaceSection(tab)
