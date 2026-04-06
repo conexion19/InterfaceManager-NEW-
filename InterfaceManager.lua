@@ -153,7 +153,7 @@ local InterfaceManager = {} do
 				if type(section) == "table" and type(section.AddToggle) == "function" then
 					section:AddToggle("AutoCursorUnlock", {
 						Title = "Auto Cursor Unlock",
-						Description = "Automatically show cursor when UI opens and hide when closed.",
+						Description = "Automatically show cursor when UI opens and hide when closed",
 						Default = Settings.AutoCursorUnlock or false,
 						Callback = function(Value)
 							if type(Value) == "boolean" then
