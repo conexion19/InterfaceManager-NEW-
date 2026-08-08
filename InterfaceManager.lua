@@ -36,7 +36,8 @@ local InterfaceManager = {} do
 	function InterfaceManager:UpdateCursorUnlock()
 		local window = self.Library and self.Library.Window
 		local root = window and window.Root
-		local shouldUnlock = self.Settings.AutoCursorUnlock == true
+		local cursorUnlockEnabled = self.Settings.AutoCursorUnlock == true
+		local shouldUnlock = cursorUnlockEnabled
 			and root ~= nil
 			and root.Visible == true
 			and window.Minimized ~= true
@@ -46,6 +47,15 @@ local InterfaceManager = {} do
 			pcall(function()
 				UserInputService.MouseBehavior = Enum.MouseBehavior.Default
 				UserInputService.MouseIconEnabled = true
+			end)
+		elseif cursorUnlockEnabled then
+			local state = self.CursorState
+			self.CursorState = nil
+			pcall(function()
+				if state then
+					UserInputService.MouseBehavior = state.MouseBehavior
+				end
+				UserInputService.MouseIconEnabled = false
 			end)
 		else
 			self:RestoreCursorState()
@@ -221,6 +231,16 @@ local InterfaceManager = {} do
 					end
 				end,
 			})
+		end
+
+		local petalsEnabled = Settings.Snowfall ~= false
+		if petalsEnabled and not Library.Snowfall and type(Library.AddPetalsToWindow) == "function" then
+			pcall(function()
+				Library:AddPetalsToWindow({ Count = 30, Speed = 15 })
+			end)
+		end
+		if Library.Snowfall and type(Library.Snowfall.SetVisible) == "function" then
+			Library.Snowfall:SetVisible(petalsEnabled)
 		end
 
 		if game.PlaceId == 93978595733734 or game.GameId == 93978595733734 then
