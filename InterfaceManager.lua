@@ -9,9 +9,63 @@ local InterfaceManager = {} do
 		Transparency = true,
         MenuKeybind = "LeftAlt",
         AutoCursorUnlock = false,
+		Snowfall = true,
     }
 
     InterfaceManager.CursorConnection = nil
+	InterfaceManager.CursorState = nil
+
+	function InterfaceManager:CaptureCursorState()
+		if self.CursorState then return end
+		self.CursorState = {
+			MouseBehavior = UserInputService.MouseBehavior,
+			MouseIconEnabled = UserInputService.MouseIconEnabled,
+		}
+	end
+
+	function InterfaceManager:RestoreCursorState()
+		local state = self.CursorState
+		self.CursorState = nil
+		if not state then return end
+		pcall(function()
+			UserInputService.MouseBehavior = state.MouseBehavior
+			UserInputService.MouseIconEnabled = state.MouseIconEnabled
+		end)
+	end
+
+	function InterfaceManager:UpdateCursorUnlock()
+		local window = self.Library and self.Library.Window
+		local root = window and window.Root
+		local shouldUnlock = self.Settings.AutoCursorUnlock == true
+			and root ~= nil
+			and root.Visible == true
+			and window.Minimized ~= true
+
+		if shouldUnlock then
+			self:CaptureCursorState()
+			pcall(function()
+				UserInputService.MouseBehavior = Enum.MouseBehavior.Default
+				UserInputService.MouseIconEnabled = true
+			end)
+		else
+			self:RestoreCursorState()
+		end
+	end
+
+	function InterfaceManager:BindCursorVisibility()
+		if self.CursorConnection then
+			self.CursorConnection:Disconnect()
+			self.CursorConnection = nil
+		end
+
+		local window = self.Library and self.Library.Window
+		if window and window.Root then
+			self.CursorConnection = window.Root:GetPropertyChangedSignal("Visible"):Connect(function()
+				self:UpdateCursorUnlock()
+			end)
+		end
+		self:UpdateCursorUnlock()
+	end
 
     function InterfaceManager:SetFolder(folder)
 		self.Folder = folder
@@ -148,6 +202,27 @@ local InterfaceManager = {} do
 			end
 		end
 
+		if type(section) == "table" and type(section.AddToggle) == "function" then
+			section:AddToggle("SnowfallToggle", {
+				Title = "Falling Petals",
+				Description = "Enable or disable falling petals in the GUI.",
+				Default = Settings.Snowfall == nil and true or Settings.Snowfall,
+				Callback = function(Value)
+					if type(Value) ~= "boolean" then return end
+					Settings.Snowfall = Value
+					InterfaceManager:SaveSettings()
+					if Value and not Library.Snowfall and type(Library.AddPetalsToWindow) == "function" then
+						pcall(function()
+							Library:AddPetalsToWindow({ Count = 30, Speed = 15 })
+						end)
+					end
+					if Library.Snowfall and type(Library.Snowfall.SetVisible) == "function" then
+						Library.Snowfall:SetVisible(Value)
+					end
+				end,
+			})
+		end
+
 		if game.PlaceId == 93978595733734 or game.GameId == 93978595733734 then
 			pcall(function()
 				if type(section) == "table" and type(section.AddToggle) == "function" then
@@ -159,53 +234,23 @@ local InterfaceManager = {} do
 							if type(Value) == "boolean" then
 								Settings.AutoCursorUnlock = Value
 								InterfaceManager:SaveSettings()
-								
-								if Value then
-									if InterfaceManager.CursorConnection then
-										InterfaceManager.CursorConnection:Disconnect()
-									end
-									
-									if Library.Window and Library.Window.Root then
-										InterfaceManager.CursorConnection = Library.Window.Root:GetPropertyChangedSignal("Visible"):Connect(function()
-											if Library.Window.Root.Visible then
-												pcall(function()
-													UserInputService.MouseBehavior = Enum.MouseBehavior.Default
-													UserInputService.MouseIconEnabled = true
-												end)
-											end
-										end)
-									end
-									
-									if Library.Window and not Library.Window.Minimized then
-										pcall(function()
-											UserInputService.MouseBehavior = Enum.MouseBehavior.Default
-											UserInputService.MouseIconEnabled = true
-										end)
-									end
-								else
-									if InterfaceManager.CursorConnection then
-										InterfaceManager.CursorConnection:Disconnect()
-										InterfaceManager.CursorConnection = nil
-									end
-								end
+								InterfaceManager:UpdateCursorUnlock()
 							end
 						end
 					})
 				end
 			end)
 		end
-    end
+		InterfaceManager:BindCursorVisibility()
+	    end
 
     function InterfaceManager:DisableCursorUnlock()
         if InterfaceManager.CursorConnection then
             InterfaceManager.CursorConnection:Disconnect()
             InterfaceManager.CursorConnection = nil
         end
-        pcall(function()
-            UserInputService.MouseBehavior = Enum.MouseBehavior.Default
-            UserInputService.MouseIconEnabled = true
-        end)
-    end
+		self:RestoreCursorState()
+	    end
 
     function InterfaceManager:SetLibrary(library)
 		self.Library = library
