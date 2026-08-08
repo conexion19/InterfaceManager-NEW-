@@ -1,6 +1,8 @@
 local httpService = game:GetService("HttpService")
+local Players = game:GetService("Players")
 local UserInputService = game:GetService("UserInputService")
 local RunService = game:GetService("RunService")
+local LocalPlayer = Players.LocalPlayer
 
 local InterfaceManager = {} do
 	InterfaceManager.Folder = "Nexus Settings"
@@ -13,7 +15,13 @@ local InterfaceManager = {} do
     }
 
     InterfaceManager.CursorConnection = nil
+	InterfaceManager.TeamConnection = nil
 	InterfaceManager.CursorState = nil
+
+	function InterfaceManager:IsSurvivor()
+		local team = LocalPlayer and LocalPlayer.Team
+		return team ~= nil and string.lower(team.Name) == "survivor"
+	end
 
 	function InterfaceManager:CaptureCursorState()
 		if self.CursorState then return end
@@ -37,7 +45,9 @@ local InterfaceManager = {} do
 		local window = self.Library and self.Library.Window
 		local root = window and window.Root
 		local cursorUnlockEnabled = self.Settings.AutoCursorUnlock == true
+		local isSurvivor = self:IsSurvivor()
 		local shouldUnlock = cursorUnlockEnabled
+			and isSurvivor
 			and root ~= nil
 			and root.Visible == true
 			and window.Minimized ~= true
@@ -48,7 +58,7 @@ local InterfaceManager = {} do
 				UserInputService.MouseBehavior = Enum.MouseBehavior.Default
 				UserInputService.MouseIconEnabled = true
 			end)
-		elseif cursorUnlockEnabled then
+		elseif cursorUnlockEnabled and isSurvivor then
 			local state = self.CursorState
 			self.CursorState = nil
 			pcall(function()
@@ -67,10 +77,19 @@ local InterfaceManager = {} do
 			self.CursorConnection:Disconnect()
 			self.CursorConnection = nil
 		end
+		if self.TeamConnection then
+			self.TeamConnection:Disconnect()
+			self.TeamConnection = nil
+		end
 
 		local window = self.Library and self.Library.Window
 		if window and window.Root then
 			self.CursorConnection = window.Root:GetPropertyChangedSignal("Visible"):Connect(function()
+				self:UpdateCursorUnlock()
+			end)
+		end
+		if LocalPlayer then
+			self.TeamConnection = LocalPlayer:GetPropertyChangedSignal("Team"):Connect(function()
 				self:UpdateCursorUnlock()
 			end)
 		end
@@ -264,11 +283,15 @@ local InterfaceManager = {} do
 		InterfaceManager:BindCursorVisibility()
 	    end
 
-    function InterfaceManager:DisableCursorUnlock()
+	    function InterfaceManager:DisableCursorUnlock()
         if InterfaceManager.CursorConnection then
             InterfaceManager.CursorConnection:Disconnect()
             InterfaceManager.CursorConnection = nil
-        end
+	        end
+		if InterfaceManager.TeamConnection then
+			InterfaceManager.TeamConnection:Disconnect()
+			InterfaceManager.TeamConnection = nil
+		end
 		self:RestoreCursorState()
 	    end
 
