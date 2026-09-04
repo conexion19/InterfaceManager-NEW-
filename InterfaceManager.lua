@@ -5,13 +5,12 @@ local RunService = game:GetService("RunService")
 local LocalPlayer = Players.LocalPlayer
 
 local InterfaceManager = {} do
-	InterfaceManager.Folder = "Nexus Settings"
+	InterfaceManager.Folder = "PRIME Settings"
     InterfaceManager.Settings = {
         Theme = "Slate",
 		Transparency = true,
         MenuKeybind = "LeftAlt",
         AutoCursorUnlock = false,
-		Snowfall = true,
     }
 
     InterfaceManager.CursorConnection = nil
@@ -231,36 +230,6 @@ local InterfaceManager = {} do
 			end
 		end
 
-		if type(section) == "table" and type(section.AddToggle) == "function" then
-			section:AddToggle("SnowfallToggle", {
-				Title = "Falling Petals",
-				Description = "Enable or disable falling petals in the GUI.",
-				Default = Settings.Snowfall == nil and true or Settings.Snowfall,
-				Callback = function(Value)
-					if type(Value) ~= "boolean" then return end
-					Settings.Snowfall = Value
-					InterfaceManager:SaveSettings()
-					if Value and not Library.Snowfall and type(Library.AddPetalsToWindow) == "function" then
-						pcall(function()
-							Library:AddPetalsToWindow({ Count = 30, Speed = 15 })
-						end)
-					end
-					if Library.Snowfall and type(Library.Snowfall.SetVisible) == "function" then
-						Library.Snowfall:SetVisible(Value)
-					end
-				end,
-			})
-		end
-
-		local petalsEnabled = Settings.Snowfall ~= false
-		if petalsEnabled and not Library.Snowfall and type(Library.AddPetalsToWindow) == "function" then
-			pcall(function()
-				Library:AddPetalsToWindow({ Count = 30, Speed = 15 })
-			end)
-		end
-		if Library.Snowfall and type(Library.Snowfall.SetVisible) == "function" then
-			Library.Snowfall:SetVisible(petalsEnabled)
-		end
 
 		if game.PlaceId == 93978595733734 or game.GameId == 93978595733734 then
 			pcall(function()
